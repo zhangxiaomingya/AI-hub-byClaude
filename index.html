@@ -814,6 +814,7 @@
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-light)" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
                     <span class="chat-title" style="font-weight:600;font-size:14px">AI 问答</span>
                     <select class="model-select" id="chatModelSelect">
+                        <option value="siliconflow">SiliconFlow(免费)</option>
                         <option value="deepseek">DeepSeek</option>
                         <option value="qwen">千问</option>
                         <option value="doubao">豆包</option>
@@ -824,7 +825,7 @@
                     <div class="message assistant">
                         <div class="message-avatar">AI</div>
                         <div class="message-bubble">
-                            你好！我是AI问答助手。请先在设置中配置API Key，然后就可以开始对话了。
+                            你好！我是AI问答助手。点击右上角⚙️设置，选择「硅基流动」（免费），输入API Key即可开始对话。<br><br>获取免费Key：打开 cloud.siliconflow.cn → 邮箱注册 → API密钥 → 创建密钥
                         </div>
                     </div>
                 </div>
@@ -845,15 +846,23 @@
             <div class="form-group">
                 <label>API 提供商</label>
                 <select id="apiProvider">
+                    <option value="siliconflow">硅基流动 SiliconFlow (免费模型)</option>
                     <option value="deepseek">DeepSeek</option>
                     <option value="qwen">通义千问 (DashScope)</option>
                     <option value="doubao">豆包 (火山引擎)</option>
                     <option value="custom">自定义 OpenAI 兼容</option>
                 </select>
             </div>
+            <div class="form-group" id="siliconflowTip" style="background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.2);border-radius:8px;padding:12px;font-size:12px;color:var(--text-secondary);line-height:1.6;">
+                <strong style="color:var(--accent-light);">免费获取Key（30秒）：</strong><br>
+                1. 打开 <a href="https://cloud.siliconflow.cn" target="_blank" style="color:var(--accent-light)">cloud.siliconflow.cn</a><br>
+                2. 邮箱注册（免费）→ 进入控制台<br>
+                3. 左侧菜单「API密钥」→ 创建密钥 → 复制粘贴到下方<br>
+                <span style="color:#34d399">Qwen2.5-7B 模型完全免费，无限调用</span>
+            </div>
             <div class="form-group">
                 <label>API Key</label>
-                <input type="password" id="apiKey" placeholder="输入你的API Key">
+                <input type="password" id="apiKey" placeholder="输入你的API Key（sk-开头）">
             </div>
             <div class="form-group" id="customUrlGroup" style="display:none">
                 <label>自定义 API URL</label>
@@ -922,7 +931,7 @@
     ];
 
     // ============ STATE ============
-    let settings = { provider: 'deepseek', apiKey: '', customUrl: '', customModel: '' };
+    let settings = { provider: 'siliconflow', apiKey: '', customUrl: '', customModel: '' };
     let conversationHistory = [];
 
     // ============ NAVIGATION ============
@@ -1128,6 +1137,10 @@
         const sys = { role: 'system', content: '你是一个有帮助的AI助手，用中文简洁地回答问题。' };
 
         switch (settings.provider) {
+            case 'siliconflow':
+                url = 'https://api.siliconflow.cn/v1/chat/completions';
+                body = { model: 'Qwen/Qwen2.5-7B-Instruct', messages: [sys, ...messages], max_tokens: 2048, temperature: 0.7 };
+                break;
             case 'deepseek':
                 url = 'https://api.deepseek.com/chat/completions';
                 body = { model: 'deepseek-chat', messages: [sys, ...messages], max_tokens: 2048, temperature: 0.7 };
@@ -1175,9 +1188,12 @@
     }
 
     function toggleCustom() {
-        const show = document.getElementById('apiProvider').value === 'custom';
-        document.getElementById('customUrlGroup').style.display = show ? 'block' : 'none';
-        document.getElementById('customModelGroup').style.display = show ? 'block' : 'none';
+        const val = document.getElementById('apiProvider').value;
+        const isCustom = val === 'custom';
+        const isSF = val === 'siliconflow';
+        document.getElementById('customUrlGroup').style.display = isCustom ? 'block' : 'none';
+        document.getElementById('customModelGroup').style.display = isCustom ? 'block' : 'none';
+        document.getElementById('siliconflowTip').style.display = isSF ? 'block' : 'none';
     }
 
     document.getElementById('apiProvider').addEventListener('change', toggleCustom);
